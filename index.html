@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BitMango.trade</title>
+    <meta name="description" content="Access professional indicators developed in live trading over 12+ years. From MtGox bots in 2013 to modern CLI tools.">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #131722;
+            --bg-secondary: #1e222d;
+            --bg-tertiary: #2a2e39;
+            --accent-green: #00d4aa;
+            --accent-red: #ff6b6b;
+            --accent-blue: #2962ff;
+            --accent-purple: #9c27b0;
+            --accent-orange: #FF6B35;
+            --accent-yellow: #FFD700;
+            --text-primary: #d1d4dc;
+            --text-secondary: #868993;
+            --text-accent: #ffffff;
+            --border-color: #363a45;
+            --grid-color: #2a2e39;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            overflow-x: hidden;
+        }
+
+        .mono {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Trading Grid Background */
+        .grid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(42, 46, 57, 0.3) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(42, 46, 57, 0.3) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: -1;
+            opacity: 0.5;
+        }
+
+        /* Header */
+        header {
+            background: rgba(19, 23, 34, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        nav {
+            padding: 1rem 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-accent);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-primary);
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent-orange);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 140px 0 100px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(ellipse at center, rgba(255, 107, 53, 0.1) 0%, transparent 70%);
+            z-index: -1;
+        }
+
+        .hero-content {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .hero-text h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            line-height: 1.1;
+            color: var(--text-accent);
+        }
+
+        .hero-text .highlight {
+            color: var(--accent-orange);
+        }
+
+        .hero-text .error {
+            color: var(--accent-red);
+        }
+
+        .hero-text .hero-subtitle {
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+        
+        .hero-text .hero-features {
+            list-style: none;
+            margin: 2rem 0;
+            padding-left: 0;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .hero-text .hero-features li {
+            font-size: 1rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .hero-text .hero-features li::before {
+            content: "✓";
+            color: var(--accent-green);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .terminal-window {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+        }
+
+        .terminal-header {
+            background: var(--bg-tertiary);
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .terminal-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .dot-red { background: var(--accent-red); }
+        .dot-orange { background: var(--accent-orange); }
+        .dot-green { background: var(--accent-green); }
+
+        .terminal-content {
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .terminal-line {
+            margin-bottom: 8px;
+        }
+
+        .prompt {
+            color: var(--accent-blue);
+        }
+
+        .command {
+            color: var(--accent-orange);
+        }
+
+        .output {
+            color: var(--text-secondary);
+        }
+
+        .success {
+            color: var(--accent-green);
+        }
+
+        .cta-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, var(--accent-orange), #FF4500);
+            color: white;
+            padding: 16px 32px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
+            background: linear-gradient(135deg, #FF4500, var(--accent-orange));
+        }
+
+        .cta-button::after {
+            content: "→";
+            transition: transform 0.3s ease;
+        }
+
+        .cta-button:hover::after {
+            transform: translateX(4px);
+        }
+
+        /* Market Stats */
+        .market-stats {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            padding: 2rem 0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 1.5rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-orange { color: var(--accent-orange); }
+        .stat-blue { color: var(--accent-blue); }
+        .stat-yellow { color: var(--accent-yellow); }
+        .stat-purple { color: var(--accent-purple); }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 100px 0;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-accent);
+        }
+
+        .section-subtitle {
+            text-align: center;
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-bottom: 4rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            padding: 2.5rem;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-orange), var(--accent-yellow));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent-orange);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            display: block;
+        }
+
+        .feature-card h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-accent);
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .code-snippet {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--accent-white);
+        }
+
+        /* Products Section */
+        .products {
+            padding: 100px 0;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .product-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            padding: 3rem;
+            border-radius: 12px;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .product-card.featured {
+            border-color: var(--accent-orange);
+            transform: scale(1.05);
+        }
+
+        .product-card.featured1::before {
+            content: 'MOST POPULAR';
+            position: absolute;
+            top: -1px;
+            left: -1px;
+            right: -1px;
+            background: linear-gradient(90deg, var(--accent-orange), var(--accent-yellow));
+            color: white;
+            padding: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .product-card.featured2::before {
+            content: 'MAXIMIZE YOUR WIN RATE';
+            position: absolute;
+            top: -1px;
+            left: -1px;
+            right: -1px;
+            background: linear-gradient(90deg, var(--accent-green), var(--accent-blue));
+            color: white;
+            padding: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .product-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent-orange);
+        }
+
+        .product-card.featured1:hover {
+            transform: scale(1.05) translateY(-4px);
+        }
+        .product-card.featured2:hover {
+            transform: scale(1.05) translateY(-4px);
+        }
+
+        .product-card h3 {
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-accent);
+        }
+
+        .price {
+            font-size: 3rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            margin: 1.5rem 0;
+        }
+
+        .price.free { color: var(--accent-orange); }
+        .price.pro { color: var(--accent-blue); }
+        .price.premium { color: var(--accent-yellow); }
+
+        .price-period {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        .product-features {
+            list-style: none;
+            margin: 2rem 0;
+            text-align: left;
+        }
+
+        .product-features li {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .product-features li:last-child {
+            border-bottom: none;
+        }
+
+        .product-features li::before {
+            content: "✓";
+            color: var(--accent-orange);
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        /* Social Proof */
+        .social-proof {
+            padding: 100px 0;
+        }
+
+        .proof-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .proof-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            padding: 2.5rem;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .proof-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent-orange);
+        }
+
+        .proof-metric {
+            font-size: 3rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            margin-bottom: 0.5rem;
+        }
+
+        .proof-card h4 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-accent);
+        }
+
+        .proof-card p {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+
+        .proof-card a {
+            color: var(--accent-orange);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .proof-card a:hover {
+            color: var(--accent-yellow);
+        }
+
+        /* Final CTA */
+        .final-cta {
+            padding: 100px 0;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .final-cta h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--text-accent);
+        }
+
+        .final-cta p {
+            font-size: 1.2rem;
+            margin-bottom: 3rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .cta-secondary {
+            background: transparent;
+            border: 2px solid var(--accent-orange);
+            color: var(--accent-orange);
+            box-shadow: 0 2px 10px rgba(255, 107, 53, 0.2);
+        }
+
+        .cta-secondary:hover {
+            background: var(--accent-orange);
+            color: white;
+            box-shadow: 0 4px 20px rgba(255, 107, 53, 0.4);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--bg-primary);
+            border-top: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            text-align: center;
+            padding: 3rem 0;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h4 {
+            color: var(--text-accent);
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .footer-section a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-section a:hover {
+            color: var(--accent-orange);
+        }
+
+        .disclaimer {
+            border-top: 1px solid var(--border-color);
+            padding-top: 2rem;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            
+            .hero-text h1 {
+                font-size: 2.5rem;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .features-grid,
+            .products-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 0 16px;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .product-card.featured1 {
+                transform: none;
+            }
+
+            .product-card.featured1:hover {
+                transform: translateY(-4px);
+            }
+            .product-card.featured2 {
+                transform: none;
+            }
+
+            .product-card.featured2:hover {
+                transform: translateY(-4px);
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-orange);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-yellow);
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+
+    <!-- Header -->
+    <header>
+        <nav class="container">
+            <a href="#" class="logo">
+                <svg width="32" height="32" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Orange background circle -->
+                    <circle cx="50" cy="50" r="50" fill="#FF6B35"/>
+                    <!-- Inner orange circle -->
+                    <ellipse cx="50" cy="35" rx="25" ry="20" fill="#FF4500"/>
+                    <!-- Mango fruit shape -->
+                    <ellipse cx="50" cy="45" rx="22" ry="30" fill="#FFD700"/>
+                    <!-- Mango cross-hatch pattern -->
+                    <g fill="#FF8C00" opacity="0.8">
+                        <!-- Vertical lines -->
+                        <rect x="42" y="30" width="2" height="30" />
+                        <rect x="46" y="30" width="2" height="30" />
+                        <rect x="50" y="30" width="2" height="30" />
+                        <rect x="54" y="30" width="2" height="30" />
+                        <rect x="58" y="30" width="2" height="30" />
+                        <!-- Horizontal lines -->
+                        <rect x="35" y="38" width="30" height="2" />
+                        <rect x="35" y="42" width="30" height="2" />
+                        <rect x="35" y="46" width="30" height="2" />
+                        <rect x="35" y="50" width="30" height="2" />
+                        <rect x="35" y="54" width="30" height="2" />
+                    </g>
+                    <!-- Green leaf -->
+                    <ellipse cx="60" cy="25" rx="8" ry="4" fill="#4CAF50" transform="rotate(45 60 25)"/>
+                    <ellipse cx="65" cy="22" rx="6" ry="3" fill="#45a049" transform="rotate(30 65 22)"/>
+                </svg>
+                <span class="logo-text">bitmango.trade</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#products">Pricing</a></li>
+                <li><a href="#proof">Track Record</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1>Stop Losing Money,<br>Trade the <span class="highlight">Bitmango way.</span></h1>
+                    <p class="hero-subtitle">Trading tools for a master trader.</p>
+                    <p>Our powerful, free command-line tool gives you a unified interface to execute trades and manage your portfolio across popular exchanges. It’s open-source, runs locally on your machine for maximum security, and lets you trade with both precision, and ease.</p>
+                    <ul class="hero-features">
+                        <li>Unified commands across all exchanges</li>
+                        <li>Buy/sell/stop orders</li>
+                        <li>Portfolio queries</li>
+                        <li>Open source & transparent</li>
+                        <li>Local execution only</li>
+                        <li>Community support</li>
+                        <li>Windows/Mac/Linux</li>
+                        <li>Perfect for bot development</li>
+                    </ul>
+                    <a href="https://github.com/bitmango-trading/bitmango-trade-cli" class="cta-button">Download Free CLI</a>
+                </div>
+                <div class="terminal-window">
+                    <div class="terminal-header">
+                        <div class="terminal-dot dot-red"></div>
+                        <div class="terminal-dot dot-orange"></div>
+                        <div class="terminal-dot dot-green"></div>
+                        <span class="mono" style="margin-left: 12px; font-size: 0.8rem; color: var(--text-secondary);">bitmango.trade</span>
+                    </div>
+                    <div class="terminal-content">
+                        <div class="terminal-line">
+                            <span class="prompt">$</span> <span class="command">bitmango buy BTC 0.1 --exchange binance</span>
+                        </div>
+                        <div class="terminal-line output">
+                            Connecting to Binance... <span class="success">✓</span>
+                        </div>
+                        <div class="terminal-line output">
+                            Order placed: BUY 0.1 BTC @ $46,250 <span class="success">✓</span>
+                        </div>
+                        <div class="terminal-line output">
+                            Stop-loss set at $44,137 (-4.6%) <span class="success">✓</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="prompt">$</span> <span class="command">bitmango status</span>
+                        </div>
+                        <div class="terminal-line output">
+                            Portfolio: +12.4% (30d)
+                        </div>
+                        <div class="terminal-line output">
+                            Win Rate: 68.2%
+                        </div>
+                        <div class="terminal-line">
+                            <span class="prompt">$</span> <span class="command">_</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Market Stats -->
+    <section class="market-stats">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value stat-orange">2013</div>
+                    <div class="stat-label">Since MtGox Era</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value stat-blue">Precision Trading</div>
+                    <div class="stat-label">Direct from your terminal</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value stat-yellow">15+</div>
+                    <div class="stat-label">Exchanges Supported</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value stat-purple">CLI</div>
+                    <div class="stat-label">Scriptable, Bot Framework</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <h2 class="section-title">Tools Perfected Since the MtGox Era</h2>
+            <p class="section-subtitle">Turn screen time into learning time. See patterns like a veteran sees them.</p>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <span class="feature-icon">⚡</span>
+                    <h3>Unified CLI Interface</h3>
+                    <p>Execute trades across 15+ major exchanges using identical commands. No more learning different APIs or switching between platforms.</p>
+                    <div class="code-snippet">
+                        $ bitmango buy ETH 1.0 --exchange coinbase<br>
+                        $ bitmango buy ETH 1.0 --exchange binance
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🔐</span>
+                    <h3>Your Keys, Your Control</h3>
+                    <p>All operations run locally on your machine. API keys never leave your computer. Open source, github hosted, fully transparent.</p>
+                    <div class="code-snippet">
+                        $ git clone https://github.com/bitmango-trading/bitmango-trade-cli<br>
+                        # Keys stored locally in encrypted config<br>
+                        $ vim ~/.config/bitmango/trade-cli.json
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">📊</span>
+                    <h3>Battle-Tested Indicators</h3>
+                    <p>Indicators developed through live trading since 2013. Hardened by market crashes, steadfast in bull runs, and everything in between. Real tools, for real traders.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🛠️</span>
+                    <h3>From Bots to CLI Evolution</h3>
+                    <p>Started with MtGox bots in 2013, evolved into modern CLI tools. A decade+ of refinement distilled into simple, powerful commands.</p>
+                    <div class="code-snippet">
+                        # 2013: Complex bot scripts<br>
+                        # 2024: Simple unified commands<br>
+                        bitmango buy BTC 0.1 --exchange binance
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🎯</span>
+                    <h3>Risk Assessment Tools</h3>
+                    <p>Calculate risk/reward ratios, position sizes, and stop levels. Tools to help you trade safer with better risk management.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">📈</span>
+                    <h3>Create Your Own Trading Signals</h3>
+                    <p>There will never be a better tool than your brain to spot patterns, you just need the right indicators. Stay in full control and leverage the power of your brain to become a master trader.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🔄</span>
+                    <h3>Trade Tracking & Analysis</h3>
+                    <p>Log and analyze your manual trades across multiple exchanges. Track performance and identify patterns in your trading decisions.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Products Section -->
+    <section class="products" id="products">
+        <div class="container">
+            <h2 class="section-title">Choose Your BitMango Arsenal</h2>
+            <p class="section-subtitle">Tools refined since 2013 - now available to serious traders</p>
+            <div class="products-grid">
+                
+                <div class="product-card featured1">
+                    <h3>Pro CLI Tool</h3>
+                    <div class="price pro">$47<span class="price-period">/month</span></div>
+                    <ul class="product-features">
+                        <li>Designed to help you reduce losses</li>
+                        <li>Smart orders (best entries/exits, lowest fees)</li>
+                        <li>Smart stop (dynamically adjustable stops)</li>
+                        <li>Automated risk management (limit losses)</li>
+                        <li>Automated trade history management</li>
+                        <li>Perfect for frequent traders</li>
+                        <li>Updates included</li>
+                    </ul>
+                    <a href="#" class="cta-button">Get Started</a>
+                </div>
+                
+                <div class="product-card featured2">
+                    <h3>Full Suite: Pro CLI + Indicators</h3>
+                    <div class="price premium">$197<span class="price-period">/month</span></div>
+                    <ul class="product-features">
+                        <li>Includes Pro CLI Tool features</li>
+                        <li>2 exclusive TradingView indicators</li>
+                        <li>The complete personal trading setup</li>
+                        <li>Identical to the YouTube live stream setup</li>
+                        <li>Perfect for serious manual traders</li>
+                        <li>Updates included</li>
+                    </ul>
+                    <a href="#" class="cta-button">Get Started</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Social Proof -->
+    <section class="social-proof" id="proof">
+        <div class="container">
+            <h2 class="section-title">A Track Record That Speaks for Itself</h2>
+            <p class="section-subtitle">Developed and perfected over a decade of live trading</p>
+            <div class="proof-grid">
+                <div class="proof-card">
+                    <div class="proof-metric stat-orange">12+</div>
+                    <h4>Years of Live Trading</h4>
+                    <p>Our indicators are not theoretical. They've been forged in the fire of real-time market action since 2013.</p>
+                </div>
+                <div class="proof-card">
+                    <div class="proof-metric stat-purple">500+</div>
+                    <h4>Star us on GitHub</h4>
+                    <p>The BitMango CLI is an open-source tool built by the community, for the community.</p>
+                </div>
+                <div class="proof-card">
+                    <div class="proof-metric stat-yellow">20+</div>
+                    <h4>Happy Customers</h4>
+                    <p>Join a growing community of traders who are turning their screen time into learning time.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="final-cta" id="contact">
+        <div class="container">
+            <h2>Ready to Trade Smarter?</h2>
+            <p>Download our free CLI tool to get a taste of the BitMango way of trading, or upgrade to a Pro plan for access to all of our signals and tools.</p>
+            <div class="cta-buttons">
+                <a href="https://github.com/bitmango-trading/bitmango-trade-cli" class="cta-button">Download Free CLI</a>
+                <a href="#" class="cta-button cta-secondary">View Pricing Plans</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>About BitMango</h4>
+                    <p>We are a small team of traders and developers committed to building transparent, powerful tools for the crypto trading community.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <p><a href="#features">Features</a></p>
+                    <p><a href="#products">Pricing</a></p>
+                    <p><a href="#proof">Track Record</a></p>
+                    <p><a href="#contact">Contact</a></p>
+                </div>
+                <div class="footer-section">
+                    <h4>Legal</h4>
+                    <p><a href="#">Privacy Policy</a></p>
+                    <p><a href="#">Terms of Service</a></p>
+                </div>
+            </div>
+            <div class="disclaimer">
+                <p>&copy; 2025 BitMango.trade. All Rights Reserved. Not financial advice. Past performance is not indicative of future results.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
